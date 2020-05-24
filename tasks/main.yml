@@ -4,8 +4,8 @@
     name: "{{ service }}"
   register: docker_swarm_service_info_result
   # until: docker_swarm_service_info_result.service.UpdateStatus.State == 'completed'
-  retries: 100
-  delay: 5
+  retries: 3
+  delay: 2
 
 - name: "Store Vars before update {{ service }} service"
   set_fact:
@@ -22,3 +22,10 @@
   when:
     - only_pull is not defined
 
+- name: "Get info from service {{ service }}"
+  docker_swarm_service_info:
+    name: "{{ service }}"
+  register: docker_swarm_service_upgrade_info_result
+  until: docker_swarm_service_upgrade_info_result.service.UpdateStatus.State == 'completed'
+  retries: 100
+  delay: 5
