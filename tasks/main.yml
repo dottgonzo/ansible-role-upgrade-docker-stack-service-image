@@ -10,6 +10,7 @@
 - name: "Store Vars before update {{ service }} service"
   set_fact:
     repo: "{{ docker_swarm_service_info_result.service.Spec.TaskTemplate.ContainerSpec.Image.split(':')[0] }}"
+    originaldockerrepo: "{{ docker_swarm_service_info_result.service.Spec.TaskTemplate.ContainerSpec.Image }}"
     dockerimage: "{{ docker_swarm_service_info_result.service.Spec.TaskTemplate.ContainerSpec.Image.split(':')[0] + ':' + imgtag if imgtag is defined else docker_swarm_service_info_result.service.Spec.TaskTemplate.ContainerSpec.Image.split('@')[0] }}"
 
 - name: "Docker Pull {{ dockerimage }} for service {{ service }}"
@@ -27,20 +28,10 @@
   docker_swarm_service_info:
     name: "{{ service }}"
   register: docker_swarm_service_upgrade_info_result
-  until: docker_swarm_service_upgrade_info_result.service.UpdateStatus.State == 'completed' if docker_swarm_service_upgrade_info_result.service.UpdateStatus is defined else True
   retries: 100
   delay: 5
-  when:
-    - only_pull is not defined
-    - docker_swarm_service_upgrade_info_result.service.UpdateStatus is defined
-    - docker_swarm_service_upgrade_info_result.service.UpdateStatus.State == 'changed'
   changed_when:
-    - docker_swarm_service_upgrade_info_result.service.UpdateStatus is defined
-    - docker_swarm_service_upgrade_info_result.service.UpdateStatus.State == 'completed'
+    - originaldockerrepo != docker_swarm_service_upgrade_info_result.service.Spec.TaskTemplate.ContainerSpec.Image
 
-- name: "Upgrade Appen for service {{ service }} with image {{ docker_swarm_service_upgrade_info_result.service.Spec.TaskTemplate.ContainerSpec.Image }}"
-  docker_swarm_service_info:
-    name: "{{ service }}"
-  retries: 100
-  delay: 5
+
     
