@@ -21,14 +21,25 @@
   command: "docker service update --with-registry-auth --image={{ dockerimage }} {{ service }}"
   when:
     - only_pull is not defined
+  changed_when: False
 
-# - name: "Get info from service {{ service }}"
-#   docker_swarm_service_info:
-#     name: "{{ service }}"
-#   register: docker_swarm_service_upgrade_info_result
-#   until: docker_swarm_service_upgrade_info_result.service.UpdateStatus.State == 'completed' if docker_swarm_service_upgrade_info_result.service.UpdateStatus is defined else True
-#   retries: 100
-#   delay: 5
-#   when:
-#     - only_pull is not defined
-#     - docker_swarm_service_upgrade_info_result.service.UpdateStatus is defined
+- name: "Get info from service {{ service }}"
+  docker_swarm_service_info:
+    name: "{{ service }}"
+  register: docker_swarm_service_upgrade_info_result
+  until: docker_swarm_service_upgrade_info_result.service.UpdateStatus.State == 'completed' if docker_swarm_service_upgrade_info_result.service.UpdateStatus is defined else True
+  retries: 100
+  delay: 5
+  when:
+    - only_pull is not defined
+    - docker_swarm_service_upgrade_info_result.service.UpdateStatus is defined
+  changed_when:
+    - docker_swarm_service_upgrade_info_result.service.UpdateStatus is defined
+    - docker_swarm_service_upgrade_info_result.service.UpdateStatus.State == 'completed'
+
+- name: "Upgrade Appen for service {{ service }} with image {{ docker_swarm_service_upgrade_info_result.service.Spec.TaskTemplate.ContainerSpec.Image }}"
+  docker_swarm_service_info:
+    name: "{{ service }}"
+  retries: 100
+  delay: 5
+    
