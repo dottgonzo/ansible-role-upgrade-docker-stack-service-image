@@ -10,7 +10,7 @@
 - name: "Store Vars before update {{ service }} service"
   set_fact:
     repo: "{{ docker_swarm_service_info_result.service.Spec.TaskTemplate.ContainerSpec.Image.split(':')[0] }}"
-    dockerimage: "{{ docker_swarm_service_info_result.service.Spec.TaskTemplate.ContainerSpec.Image.split(':')[0] + ':' + imgtag if imgtag is defined else docker_swarm_service_info_result.service.Spec.TaskTemplate.ContainerSpec.Image.split(':')[1] }}"
+    dockerimage: "{{ docker_swarm_service_info_result.service.Spec.TaskTemplate.ContainerSpec.Image.split(':')[0] + ':' + imgtag if imgtag is defined else docker_swarm_service_info_result.service.Spec.TaskTemplate.ContainerSpec.Image }}"
 
 - name: "Docker Pull {{ dockerimage }} for service {{ service }}"
   docker_image:
